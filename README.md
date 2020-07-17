@@ -6,11 +6,11 @@ Python implementation of NTSC vector scope.
 
 Import a image file to draw NTSC vector scope.
 
-## Requirement
+## Requirements
 
 - Python3
 - Numpy
-- cv2
+- cv2 (import with `python3 -m pip install opencv-python`)
 
 ## Usage
 
@@ -22,7 +22,7 @@ then get below.
 
 ## Author
 
-delphinus1024
+[delphinus1024](https://github.com/delphinus1024)
 
 ## License
 

@@ -3,12 +3,16 @@
 # NTSC vector scope
 
 import math
-import sys
 import os
-import cv2
-import numpy as np
+import subprocess
+import sys
+import time
 from platform import system
 
+import cv2
+import numpy as np
+
+startTime = time.perf_counter()
 # scope size
 cols = 512
 rows = 512
@@ -20,7 +24,7 @@ outerlinecolor = (128, 128, 128)
 small_tick_ratio = 0.98
 large_tick_ratio = 0.95
 tick_width = 2
-dot_radius = 2
+dot_radius = 1
 vector_len = 8
 al_out_angle = 4.
 al_out_rad = 0.05
@@ -39,6 +43,19 @@ b_b = -0.587
 c_b = 0.886
 
 maxval = 0
+
+
+def resize_image(original_width, original_height):
+    global image
+    if original_width <= original_height:
+        scale_ratio = 1024 / original_height
+        dimension_resized = (int(original_width * scale_ratio), int(original_height * scale_ratio))
+        image = cv2.resize(cv2.imread(argvs[1]), dimension_resized, interpolation=cv2.INTER_AREA)
+    elif original_width > original_height:
+        scale_ratio = 1024 / original_width
+        dimension_resized = (int(original_width * scale_ratio), int(original_height * scale_ratio))
+        image = cv2.resize(cv2.imread(argvs[1]), dimension_resized, interpolation=cv2.INTER_AREA)
+    return dimension_resized
 
 
 # a_r = 0.701, b_r = -0.587, c_r = -0.114
@@ -184,7 +201,7 @@ def draw_background(result_img, center_x, center_y, radius):
              (xe, ye), outerlinecolor, 1)
 
     # draw vectors
-    # [r, theta, unknown]
+    # [radius, theta, range]
     vec = [[0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 1.0, 1.0],
            [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0], [1.0, 0.4, 0.0]]
     col_name = ["B", "G", "CY", "R", "MG", "YL", "SKIN"]
@@ -213,14 +230,20 @@ if __name__ == '__main__':
 
     image = cv2.imread(argvs[1])
     height, width, depth = image.shape
-    print("width=", width, " height=", height, " depth=", depth)
-
     # accept only rgb
     if depth != 3:
         print("Error. Not RGB image.")
         quit()
+    print("Original width=", width, " height=", height, " depth=", depth)
+    # resize big image(dimension >= 1024 * 1024) for better performance
+    if height >= 1024 or width >= 1024:
+        print('Resizing image for better performance...')
+        width_resized, height_resized = resize_image(width, height)
+        print("Resized width=", width_resized, " height=", height_resized)
+    else:
+        width_resized, height_resized = width, height
 
-    # initialize table
+        # initialize table
     maxval = calc_maxval()
 
     # create result image in black bg
@@ -230,7 +253,7 @@ if __name__ == '__main__':
     result_img = np.zeros((rows, cols, 3), np.uint8)
 
     # reshape to 1d & hsv conversion
-    lin_image = (np.reshape(image, (height * width, 3))).astype(np.float64) / 255.
+    lin_image = (np.reshape(image, (width_resized * height_resized, 3))).astype(np.float64) / 255.
 
     # plot all pixels
     for bgr in lin_image:
@@ -243,14 +266,19 @@ if __name__ == '__main__':
     # Will save to current Python working directory on other platforms
     if system() == 'Darwin':
         homedir = os.path.expanduser("~")
-        savedir = str(homedir + 'Documents/GitHub/vector_scope/')
+        savedir = str(homedir + '/Documents/GitHub/vector_scope/')
         if os.path.exists(savedir):
             cv2.imwrite(savedir + 'result.png', result_img)
+            subprocess.call('open ' + savedir + 'result.png', shell=True)
         else:
+            savedir = os.getcwd()
             cv2.imwrite('result.png', result_img)
+            subprocess.call('open ' + savedir + 'result.png', shell=True)
     else:
+        savedir = os.getcwd()
         cv2.imwrite('result.png', result_img)
+        print('Result saved as ' + savedir + 'result.png')
     # show vectorscope
     # cv2.imshow('vectorscope', result_img)
-
-    cv2.waitKey(0)
+    endTime = time.perf_counter()
+    print('Runtime: ' + str(endTime - startTime) + 's')

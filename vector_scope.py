@@ -12,7 +12,7 @@ from platform import system
 import cv2
 import numpy as np
 
-startTime = time.perf_counter()
+startTime = time.time()
 # scope size
 cols = 512
 rows = 512
@@ -201,9 +201,8 @@ def draw_background(result_img, center_x, center_y, radius):
              (xe, ye), outerlinecolor, 1)
 
     # draw vectors
-    # [radius, theta, range]
     vec = [[0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 1.0, 1.0],
-           [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0], [1.0, 0.4, 0.0]]
+           [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0], [0.25, 0.07, 0.0]]
     col_name = ["B", "G", "CY", "R", "MG", "YL", "SKIN"]
 
     fontType = cv2.FONT_HERSHEY_PLAIN
@@ -236,10 +235,15 @@ if __name__ == '__main__':
         quit()
     print("Original width=", width, " height=", height, " depth=", depth)
     # resize big image(dimension >= 1024 * 1024) for better performance
+
     if height >= 1024 or width >= 1024:
         print('Resizing image for better performance...')
-        width_resized, height_resized = resize_image(width, height)
-        print("Resized width=", width_resized, " height=", height_resized)
+        try:
+            width_resized, height_resized = resize_image(width, height)
+            print("Resized width=", width_resized, " height=", height_resized)
+        except cv2.error:
+            print("Resize failed, using original image for calculation.")
+            width_resized, height_resized = width, height
     else:
         width_resized, height_resized = width, height
 
@@ -280,5 +284,5 @@ if __name__ == '__main__':
         print('Result saved as ' + savedir + 'result.png')
     # show vectorscope
     # cv2.imshow('vectorscope', result_img)
-    endTime = time.perf_counter()
+    endTime = time.time()
     print('Runtime: ' + str(endTime - startTime) + 's')

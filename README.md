@@ -11,6 +11,7 @@ Import a image file to draw NTSC vector scope.
 - Python3
 - Numpy
 - cv2 (import with `python3 -m pip install opencv-python`)
+- scikit-image (import with `python -m pip install scikit-image`)
 
 ## Usage
 

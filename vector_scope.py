@@ -12,7 +12,10 @@ from platform import system
 import cv2
 import numpy as np
 
-startTime = time.time()
+from skimage import io
+from skimage.transform import resize
+
+startTime = time.perf_counter()
 # scope size
 cols = 512
 rows = 512
@@ -44,19 +47,36 @@ c_b = 0.886
 
 maxval = 0
 
-
 def resize_image(original_width, original_height):
     global image
     if original_width <= original_height:
-        scale_ratio = 1024 / original_height
+        scale_ratio = float(1024) / float(original_height)
         dimension_resized = (int(original_width * scale_ratio), int(original_height * scale_ratio))
         image = cv2.resize(cv2.imread(argvs[1]), dimension_resized, interpolation=cv2.INTER_AREA)
     elif original_width > original_height:
-        scale_ratio = 1024 / original_width
+        scale_ratio = float(1024) / float(original_width)
         dimension_resized = (int(original_width * scale_ratio), int(original_height * scale_ratio))
         image = cv2.resize(cv2.imread(argvs[1]), dimension_resized, interpolation=cv2.INTER_AREA)
     return dimension_resized
 
+
+def scikit_resize(original_width, original_height):
+    global image
+    def saveimage(scikit_image):
+        global image
+        io.imsave('temp.png',scikit_image)
+        image=cv2.imread('temp.png')
+
+    if original_width <= original_height:
+        scale_ratio = float(1024) / float(original_height)
+        dimension_resized = (int(original_width * scale_ratio), int(original_height * scale_ratio))
+        image = resize(io.imread(argvs[1]), (int(dimension_resized[1]*scale_ratio), int(dimension_resized[0] * scale_ratio)), anti_aliasing=False)
+        saveimage(image)
+    elif original_width > original_height:
+        scale_ratio = float(1024) / float(original_width)
+        dimension_resized = (int(original_width * scale_ratio), int(original_height * scale_ratio))
+        image = resize(io.imread(argvs[1]), (int(dimension_resized[1]*scale_ratio), int(dimension_resized[0] * scale_ratio)), anti_aliasing=False)
+        saveimage(image)
 
 # a_r = 0.701, b_r = -0.587, c_r = -0.114
 def calc_ryby(r, g, b):
@@ -233,7 +253,8 @@ if __name__ == '__main__':
     if depth != 3:
         print("Error. Not RGB image.")
         quit()
-    print("Original width=", width, " height=", height, " depth=", depth)
+    
+    print('Original width=', width, ' height=', height, ' depth=', depth)
     # resize big image(dimension >= 1024 * 1024) for better performance
 
     if height >= 1024 or width >= 1024:
@@ -242,12 +263,17 @@ if __name__ == '__main__':
             width_resized, height_resized = resize_image(width, height)
             print("Resized width=", width_resized, " height=", height_resized)
         except cv2.error:
-            print("Resize failed, using original image for calculation.")
-            width_resized, height_resized = width, height
+            try:
+                scikit_resize(width, height)
+                width_resized, height_resized, depth = image.shape
+                print("Resized width=", width_resized, " height=", height_resized)
+            except:
+                print("Resize failed, using original image for calculation.")
+                width_resized, height_resized = width, height
     else:
         width_resized, height_resized = width, height
 
-        # initialize table
+    # initialize table
     maxval = calc_maxval()
 
     # create result image in black bg
@@ -282,7 +308,17 @@ if __name__ == '__main__':
         savedir = os.getcwd()
         cv2.imwrite('result.png', result_img)
         print('Result saved as ' + savedir + 'result.png')
+
     # show vectorscope
     # cv2.imshow('vectorscope', result_img)
-    endTime = time.time()
+
+    # If temporary file is generated using alternative resizing method, then delete temp file
+    if os.path.exists('temp.png'):
+        print('Cleaning temporary file...')
+        os.remove('temp.png')
+    else:
+        pass
+
+
+    endTime = time.perf_counter()
     print('Runtime: ' + str(endTime - startTime) + 's')

@@ -15,7 +15,13 @@ Import a image file to draw NTSC vector scope.
 
 ## Usage
 
-python vector_scope.py [image file name]
+On macOS:
+
+`python3 vector_scope.py [image file name]`
+
+On Windows PC:
+
+`python3 vector_scope.py [image file name]`
 
 then get below.
 

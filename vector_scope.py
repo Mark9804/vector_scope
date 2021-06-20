@@ -16,6 +16,8 @@ from skimage import io
 from skimage.transform import resize
 
 startTime = time.perf_counter()
+mode_precise = False
+
 # scope size
 cols = 512
 rows = 512
@@ -257,7 +259,12 @@ if __name__ == '__main__':
     print('Original width=', width, ' height=', height, ' depth=', depth)
     # resize big image(dimension >= 1024 * 1024) for better performance
 
-    if height >= 1024 or width >= 1024:
+    for argv in sys.argv:
+        if argv == '--precise' or argv == '-p':
+            print('Resizing disabled by flag "Precise".')
+            mode_precise = True
+
+    if max(height, width) >= 1024 and mode_precise is False:
         print('Resizing image for better performance...')
         try:
             width_resized, height_resized = resize_image(width, height)

@@ -15,15 +15,11 @@ Import a image file to draw NTSC vector scope.
 
 ## Usage
 
-On macOS:
+`python3 vector_scope.py [--precise] [image file name]`
 
-`python3 vector_scope.py [image file name]`
+For efficiency reasons, vector_scope.py would resize large image (either width or hight is longer than 1024px) down to an image whose longest dimension is no more than 1024px. `--precise` or `-p` flag would prevent vector_scope.py to do so and send the original image into processing workflow.
 
-On Windows PC:
-
-`python3 vector_scope.py [image file name]`
-
-then get below.
+After finishing calculation and drawing, the vector scope image should pop out automatically. If not, look for the result.png file in the same folder where vector_scope.py locates, or see if the image lies in the root folder of python runtime.
 
 <img src="result.png" style="width: 600px;"/>
 

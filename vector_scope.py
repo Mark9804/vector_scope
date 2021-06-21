@@ -249,7 +249,11 @@ if __name__ == '__main__':
         print("Usage: vector_scope.py [image]")
         quit()
 
-    image = cv2.imread(argvs[1])
+    for argv_image in sys.argv:
+        if argv_image.find('.') != -1:
+            img_path = argv_image
+
+    image = cv2.imread(img_path)
     height, width, depth = image.shape
     # accept only rgb
     if depth != 3:

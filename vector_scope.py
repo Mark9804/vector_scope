@@ -307,7 +307,7 @@ if __name__ == '__main__':
     # Will save to current Python working directory on other platforms
     if system() == 'Darwin':
         homedir = os.path.expanduser("~")
-        savedir = str(homedir + '/Documents/GitHub/vector_scope/')
+        savedir = str(homedir + '/Documents/GitHub.nosync/vector_scope/')
         if os.path.exists(savedir):
             cv2.imwrite(savedir + 'result.png', result_img)
             subprocess.call('open ' + savedir + 'result.png', shell=True)
